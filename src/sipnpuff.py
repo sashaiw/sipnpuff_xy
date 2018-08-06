@@ -2,14 +2,16 @@
 
 import rospy
 import time
+from math import pi
 from std_msgs.msg import Float64
 
 
 class SipNPuffUI:
-    def __init__(self, zero=377, deadzone=3, timeout=.5):
+    def __init__(self, zero=377, deadzone=3, timeout=.5, rate=1):
         self.zero = zero
         self.deadzone = deadzone
         self.timeout = timeout
+        self.rate=rate
         self.mode = 'rest'
         self.servo_x = 0
         self.servo_y = 0
@@ -44,45 +46,45 @@ class SipNPuffUI:
             self.end_time = time.time()
             if self.end_time - self.start_time > self.timeout:
                 self.mode = 'rest'
-                print('enter rest mode')
+                print('rest mode')
 
         # detect sip
         if self.mode == 'rest' and self.process(sensor_val) < -10:
             self.end_time = time.time()
             if self.end_time - self.start_time > self.timeout:
-                print('enter sip mode')
+                print('x adj mode')
                 self.mode = 'sip'
 
         # activate sip mode
         if self.mode == 'sip' and self.process(sensor_val) != 0:
             self.start_time = time.time()
-            self.servo_x += self.process(sensor_val) / 500
-            self.servo_x = self.clamp(-90, self.servo_x, 90)
+            self.servo_x += -self.process(sensor_val) / 100000 * self.rate
+            self.servo_x = self.clamp(-pi, self.servo_x, pi)
         elif self.mode == 'sip':
             self.end_time = time.time()
             if self.end_time - self.start_time > self.timeout:
                 self.mode = 'rest'
-                print('enter rest mode')
+                print('rest mode')
 
         # detect puff
         if self.mode == 'rest' and 10 < self.process(sensor_val) < 1000:
             self.end_time = time.time()
-            if self.end_time - self.start_time > .5:
-                print('enter puff mode')
+            if self.end_time - self.start_time > self.timeout:
+                print('y adj mode')
                 self.mode = 'puff'
 
         # activate puff mode
         if self.mode == 'puff' and self.process(sensor_val) != 0:
             self.start_time = time.time()
-            self.servo_y += self.process(sensor_val) / 500
-            self.servo_y = self.clamp(-90, self.servo_y, 90)
+            self.servo_y += self.process(sensor_val) / 100000 * self.rate
+            self.servo_y = self.clamp(-1, self.servo_y, 1)
         elif self.mode == 'puff':
             self.end_time = time.time()
             if self.end_time - self.start_time > self.timeout:
                 self.mode = 'rest'
-                print('enter rest mode')
+                print('rest mode')
 
-        #print(self.process(sensor_val))
+        # print(self.process(sensor_val))
         return self.servo_x, self.servo_y
 
 
@@ -93,8 +95,8 @@ class SipNPuffNode:
         sipnpuffui = SipNPuffUI()
         rospy.init_node('sipnpuff_ui')
         rate = float(rospy.get_param('~rate', '100'))
-        servo_x_topic = rospy.get_param('~x_topic', 'servo_x')
-        servo_y_topic = rospy.get_param('~y_topic', 'servo_y')
+        servo_x_topic = rospy.get_param('~x_topic', '/pan_controller/command')
+        servo_y_topic = rospy.get_param('~y_topic', '/tilt_controller/command')
 
         servo_x_pub = rospy.Publisher(servo_x_topic, Float64, queue_size=10)
         servo_y_pub = rospy.Publisher(servo_y_topic, Float64, queue_size=10)
