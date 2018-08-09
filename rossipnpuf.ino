@@ -11,14 +11,12 @@ int sensorPin = 3;
 std_msgs::Float64 sipnpuff;
 ros::Publisher p("sipnpuff_sensor", &sipnpuff);
 
-void setup()
-{
+void setup() {
   nh.initNode();
   nh.advertise(p);
 }
 
-void loop()
-{
+void loop() {
   sipnpuff.data = analogRead(sensorPin);
   p.publish(&sipnpuff);
   nh.spinOnce();
