@@ -1,10 +1,10 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
+
 import rospy
 from std_msgs.msg import Float64
 import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
-from matplotlib import style
 from math import pi
 
 class Visualizer:
