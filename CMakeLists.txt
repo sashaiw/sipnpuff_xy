@@ -4,5 +4,4 @@ project(sipnpuff)
 find_package(catkin REQUIRED COMPONENTS
   rospy
   std_msgs
-  matplotlib
 )
