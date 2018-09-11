@@ -104,7 +104,7 @@ class SipNPuffNode:
         servo_x_msg = Float64()
         servo_y_msg = Float64()
 
-        sensor_topic = rospy.get_param('~sensor_topic', 'sipnpuff_sensor')
+        sensor_topic = rospy.get_param('~sensor_topic', '/sipnpuff/sensor')
         rospy.Subscriber(sensor_topic, Float64, self.callback)
 
         while not rospy.is_shutdown():
